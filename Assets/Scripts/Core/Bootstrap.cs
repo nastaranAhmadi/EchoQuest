@@ -5,16 +5,16 @@ using EchoQuest.Core;
 using EchoQuest.Gameplay;
 using EchoQuest.Input;
 using EchoQuest.Player;
+using EchoQuest.Save;
 using EchoQuest.UI;
 
 namespace EchoQuest.Core
 {
     /// <summary>
-    /// Wires core services and a playable audio sandbox for Phase 2.
+    /// Wires core services, menus, and the practice sandbox.
     /// </summary>
     public sealed class Bootstrap : MonoBehaviour
     {
-        [SerializeField] private bool autoStartPlaying = true;
         [SerializeField] private bool createPlayerIfMissing = true;
         [SerializeField] private bool createBeaconIfMissing = true;
 
@@ -29,9 +29,10 @@ namespace EchoQuest.Core
             var audio = EnsureComponentOn<AudioManager>(systems);
             var accessibility = EnsureComponentOn<AccessibilityManager>(systems);
             EnsureComponentOn<NarrationQueue>(systems);
+            var progress = EnsureComponentOn<GameProgressService>(systems);
 
-            // Re-apply after AudioManager exists.
-            accessibility.ApplySettings(accessibility.Current);
+            progress.Reload();
+            progress.ApplyLoadedAccessibility(accessibility);
 
             var inputGo = EnsureNamedObject("InputSystems");
             var router = EnsureComponentOn<InputActionRouter>(inputGo);
@@ -40,6 +41,7 @@ namespace EchoQuest.Core
 
             var touch = EnsureComponentOn<TouchControlSurface>(inputGo);
             touch.Initialize(router);
+            touch.SetGameplayVisible(false);
 
             PlayerController player = FindFirstObjectByType<PlayerController>();
             if (createPlayerIfMissing && player == null)
@@ -58,20 +60,12 @@ namespace EchoQuest.Core
                 CreateBeacon(player.transform, audio);
             }
 
-            if (autoStartPlaying)
-            {
-                gameManager.StartPlaying();
-            }
-            else
-            {
-                gameManager.EnterMainMenu();
-            }
+            var menu = EnsureComponentOn<MenuController>(systems);
+            menu.Initialize(gameManager, accessibility, progress, audio, touch);
 
-            accessibility.Announce(
-                "EchoQuest ready. Listen for the beacon. Move with the pad, then press interact when near.",
-                urgent: true);
+            gameManager.EnterMainMenu();
 
-            Debug.Log("EchoQuest bootstrap ready. Phase 2 audio + narration.");
+            Debug.Log("EchoQuest bootstrap ready. Phase 3 menus + settings.");
         }
 
         private static GameObject EnsureNamedObject(string name)

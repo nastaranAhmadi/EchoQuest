@@ -68,15 +68,16 @@ namespace EchoQuest.Core
         public void EnterMainMenu()
         {
             Time.timeScale = 1f;
+            accessibility?.StopSpeech();
             SetState(GameState.MainMenu);
-            accessibility?.Announce("Main menu.");
         }
 
         public void StartPlaying()
         {
             Time.timeScale = 1f;
             SetState(GameState.Playing);
-            accessibility?.Announce("Game started.");
+            accessibility?.Announce(
+                "Game started. Listen for the beacon. Move with the pad, then press interact when near.");
         }
 
         public void Pause()

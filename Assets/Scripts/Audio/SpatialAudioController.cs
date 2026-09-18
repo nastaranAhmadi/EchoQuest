@@ -17,6 +17,7 @@ namespace EchoQuest.Audio
         private AudioSource _source;
         private AudioManager _audioManager;
         private float _baseVolume = 1f;
+        private bool _mutedByGameState;
 
         private void Awake()
         {
@@ -29,7 +30,32 @@ namespace EchoQuest.Audio
 
         private void LateUpdate()
         {
-            if (listener == null || _source == null || !_source.isPlaying)
+            if (listener == null || _source == null)
+            {
+                return;
+            }
+
+            var game = EchoQuest.Core.GameManager.Instance;
+            bool shouldHear = game == null || game.State == EchoQuest.Core.GameState.Playing || game.State == EchoQuest.Core.GameState.Paused;
+
+            if (!shouldHear)
+            {
+                if (_source.isPlaying)
+                {
+                    _source.Pause();
+                    _mutedByGameState = true;
+                }
+
+                return;
+            }
+
+            if (_mutedByGameState)
+            {
+                _source.UnPause();
+                _mutedByGameState = false;
+            }
+
+            if (!_source.isPlaying)
             {
                 return;
             }

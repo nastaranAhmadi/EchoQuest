@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using EchoQuest.Accessibility;
 
 namespace EchoQuest.Save
 {
@@ -13,8 +14,9 @@ namespace EchoQuest.Save
         [Serializable]
         public sealed class SaveData
         {
-            public int highestCompletedLevel;
             public bool hasSave;
+            public bool hasGameplayProgress;
+            public int highestCompletedLevel;
             public string accessibilityJson;
         }
 
@@ -52,6 +54,35 @@ namespace EchoQuest.Save
         {
             PlayerPrefs.DeleteKey(Key);
             PlayerPrefs.Save();
+        }
+
+        public static AccessibilityManager.Settings ReadAccessibility(SaveData data)
+        {
+            if (data == null || string.IsNullOrEmpty(data.accessibilityJson))
+            {
+                return new AccessibilityManager.Settings();
+            }
+
+            try
+            {
+                var settings = JsonUtility.FromJson<AccessibilityManager.Settings>(data.accessibilityJson);
+                return settings ?? new AccessibilityManager.Settings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to parse accessibility settings: {ex.Message}");
+                return new AccessibilityManager.Settings();
+            }
+        }
+
+        public static void WriteAccessibility(SaveData data, AccessibilityManager.Settings settings)
+        {
+            if (data == null)
+            {
+                return;
+            }
+
+            data.accessibilityJson = JsonUtility.ToJson(settings ?? new AccessibilityManager.Settings());
         }
     }
 }

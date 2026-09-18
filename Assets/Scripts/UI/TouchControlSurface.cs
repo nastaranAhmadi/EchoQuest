@@ -27,6 +27,19 @@ namespace EchoQuest.UI
             BuildUi();
         }
 
+        public void SetGameplayVisible(bool visible)
+        {
+            if (_canvas != null)
+            {
+                _canvas.gameObject.SetActive(visible);
+            }
+
+            if (!visible)
+            {
+                _router?.ClearMoveInput();
+            }
+        }
+
         private void OnDestroy()
         {
             if (_canvas != null)

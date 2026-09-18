@@ -48,15 +48,15 @@ Three short levels:
 
 ## Project status
 
-**Phase 2 — Audio + narration (current)**
+**Phase 3 — Menus + accessibility settings (current)**
 
-- Touch controls + sandbox movement + pause
-- Audio buses (Music / SFX / Voice / Accessibility) with procedural offline cues
-- Spatial beacon (distance + stereo pan)
-- Narration queue + `INarrator` (Log fallback; Android TTS on device)
-- Interact with nearest audible object
+- Main menu: New Game, Continue, Tutorial, Settings, About, Exit
+- Settings: volume buses, narration, cues, contrast, UI/text scale, reset
+- Local save for settings + continue progress
+- Pause overlay with Resume / Settings / Main Menu
+- Practice sandbox with spatial beacon still available after New Game / Tutorial
 
-Menus and the three thesis levels are **not** implemented yet.
+Three scripted thesis levels are **not** implemented yet.
 
 ## Screenshots
 
