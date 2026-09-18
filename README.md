@@ -48,15 +48,15 @@ Three short levels:
 
 ## Project status
 
-**Phase 1 — Core input + movement (current)**
+**Phase 2 — Audio + narration (current)**
 
-- Unity project scaffold + documentation
-- Portrait Android-oriented Player Settings
-- `InputActionRouter` + large on-screen touch pad
-- Keyboard/gamepad bridge for Editor testing
-- Sandbox player movement + pause/resume
+- Touch controls + sandbox movement + pause
+- Audio buses (Music / SFX / Voice / Accessibility) with procedural offline cues
+- Spatial beacon (distance + stereo pan)
+- Narration queue + `INarrator` (Log fallback; Android TTS on device)
+- Interact with nearest audible object
 
-Menus, levels, spatial object audio, and Android TTS are **not** implemented yet.
+Menus and the three thesis levels are **not** implemented yet.
 
 ## Screenshots
 

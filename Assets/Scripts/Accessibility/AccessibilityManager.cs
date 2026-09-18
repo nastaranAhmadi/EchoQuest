@@ -1,5 +1,5 @@
-using System;
 using UnityEngine;
+using EchoQuest.Audio;
 
 namespace EchoQuest.Accessibility
 {
@@ -9,12 +9,14 @@ namespace EchoQuest.Accessibility
     /// </summary>
     public sealed class AccessibilityManager : MonoBehaviour
     {
-        [Serializable]
+        public static AccessibilityManager Instance { get; private set; }
+
+        [System.Serializable]
         public sealed class Settings
         {
             [Header("Audio")]
             [Range(0f, 1f)] public float masterVolume = 1f;
-            [Range(0f, 1f)] public float musicVolume = 0.6f;
+            [Range(0f, 1f)] public float musicVolume = 0.35f;
             [Range(0f, 1f)] public float sfxVolume = 1f;
             [Range(0f, 1f)] public float narrationVolume = 1f;
             [Range(0f, 1f)] public float accessibilityCueVolume = 1f;
@@ -33,33 +35,103 @@ namespace EchoQuest.Accessibility
 
         public Settings Current { get; private set; } = new Settings();
 
-        private INarrator _narrator = new LogNarrator();
+        [SerializeField] private NarrationQueue narrationQueue;
+        [SerializeField] private AudioManager audioManager;
 
-        public INarrator Narrator
+        private INarrator _narrator;
+
+        public INarrator Narrator => _narrator;
+
+        private void Awake()
         {
-            get => _narrator;
-            set => _narrator = value ?? new LogNarrator();
+            if (Instance != null && Instance != this)
+            {
+                Destroy(this);
+                return;
+            }
+
+            Instance = this;
+
+            if (narrationQueue == null)
+            {
+                narrationQueue = gameObject.GetComponent<NarrationQueue>();
+                if (narrationQueue == null)
+                {
+                    narrationQueue = gameObject.AddComponent<NarrationQueue>();
+                }
+            }
+
+            if (audioManager == null)
+            {
+                audioManager = FindFirstObjectByType<AudioManager>();
+            }
+
+            _narrator = NarratorFactory.CreateDefault();
+            narrationQueue.SetNarrator(_narrator);
+            ApplySettings(Current);
         }
 
-        public void Announce(string message)
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+
+        public void Announce(string message, bool urgent = false)
         {
             if (!Current.narrationEnabled || string.IsNullOrWhiteSpace(message))
             {
                 return;
             }
 
-            _narrator.Speak(message);
+            if (narrationQueue == null)
+            {
+                _narrator?.Speak(message);
+                return;
+            }
+
+            if (urgent)
+            {
+                narrationQueue.SpeakNow(message);
+            }
+            else
+            {
+                narrationQueue.Enqueue(message);
+            }
+        }
+
+        public void StopSpeech()
+        {
+            narrationQueue?.StopAll();
+            _narrator?.Stop();
         }
 
         public void ApplySettings(Settings settings)
         {
             Current = settings ?? new Settings();
-            // Volume / visual application is implemented in later phases.
+
+            if (audioManager == null)
+            {
+                audioManager = AudioManager.Instance ?? FindFirstObjectByType<AudioManager>();
+            }
+
+            if (audioManager != null)
+            {
+                audioManager.SetBusVolumes(
+                    Current.masterVolume,
+                    Current.musicVolume,
+                    Current.sfxVolume,
+                    Current.narrationVolume,
+                    Current.accessibilityCueVolume);
+                audioManager.AudioCuesEnabled = Current.audioCuesEnabled;
+            }
         }
 
         public void ResetToDefaults()
         {
-            Current = new Settings();
+            ApplySettings(new Settings());
         }
     }
 }

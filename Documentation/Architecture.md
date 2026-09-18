@@ -108,4 +108,4 @@ Unity **Input System** maps hardware / touch to `GameAction`. Portrait layout:
 
 ## Status
 
-Phase 0 provides stubs and settings scaffolding. Full wiring lands in later phases.
+Phase 2 wires audio buses, spatial beacons, narration queue, and interactables in a sandbox scene. Menus and scripted levels come next.

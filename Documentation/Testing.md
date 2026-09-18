@@ -31,7 +31,9 @@ Automated tests will be added as systems stabilize (Phases 4–6).
 ## Known issues
 
 - Unity Editor may adjust package versions / `.meta` files on first import
-- Narration is log-only (`LogNarrator`) until Android TTS is added
-- No menus or levels yet (Phase 1 = sandbox movement + pause)
+- In Editor, narration uses `LogNarrator` (Console). On Android builds, native TTS is attempted
+- Android TTS quality depends on the device language pack — document failures in MobileDeployment
+- Procedural beeps are placeholders, not final sound design
+- No menus or three thesis levels yet
+- Proximity narration can feel chatty — tune cooldowns during playtests
 - Multi-direction chord on the D-pad replaces the previous hold (one direction at a time)
-- Builtin UI font fallback depends on Unity version (`LegacyRuntime.ttf` / `Arial.ttf`)
