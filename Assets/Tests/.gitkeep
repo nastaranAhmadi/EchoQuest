@@ -1,0 +1,5 @@
+# EchoQuest
+
+Keep this folder for non-Assets test assemblies if desired.
+
+Unity-embedded tests may instead use `Assets/Tests`. Either approach is fine for the Bachelor MVP; prefer one location once tests are added.
