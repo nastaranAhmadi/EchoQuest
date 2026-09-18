@@ -6,7 +6,7 @@ using EchoQuest.Core;
 namespace EchoQuest.Gameplay
 {
     /// <summary>
-    /// Finds the nearest audible object and handles Interact.
+    /// Finds the nearest audible object and forwards Interact to the active level.
     /// </summary>
     public sealed class InteractionSystem : MonoBehaviour
     {
@@ -17,12 +17,14 @@ namespace EchoQuest.Gameplay
         private AccessibilityManager _accessibility;
         private AudioManager _audio;
         private GameManager _gameManager;
+        private LevelManager _levels;
         private float _nextProximityAnnounce;
         private AudibleInteractable _lastAnnounced;
 
-        public void Initialize(Transform playerTransform)
+        public void Initialize(Transform playerTransform, LevelManager levels)
         {
             player = playerTransform;
+            _levels = levels;
             _accessibility = AccessibilityManager.Instance ?? FindFirstObjectByType<AccessibilityManager>();
             _audio = AudioManager.Instance ?? FindFirstObjectByType<AudioManager>();
             _gameManager = GameManager.Instance ?? FindFirstObjectByType<GameManager>();
@@ -35,12 +37,17 @@ namespace EchoQuest.Gameplay
                 return;
             }
 
+            if (_levels != null && !_levels.ProximityHintsEnabled)
+            {
+                return;
+            }
+
             if (Time.unscaledTime < _nextProximityAnnounce)
             {
                 return;
             }
 
-            AudibleInteractable nearest = FindNearest(includeCollected: false);
+            AudibleInteractable nearest = FindNearest(includeConsumed: false);
             if (nearest == null)
             {
                 return;
@@ -52,7 +59,6 @@ namespace EchoQuest.Gameplay
                 return;
             }
 
-            // Soft proximity narration when entering a closer band or new target.
             if (nearest != _lastAnnounced || distance < 2.5f)
             {
                 _lastAnnounced = nearest;
@@ -76,7 +82,7 @@ namespace EchoQuest.Gameplay
                 return;
             }
 
-            AudibleInteractable nearest = FindNearest(includeCollected: true);
+            AudibleInteractable nearest = FindNearest(includeConsumed: true);
             if (nearest == null)
             {
                 _audio?.PlayFailure();
@@ -93,10 +99,23 @@ namespace EchoQuest.Gameplay
             }
 
             _audio?.PlayInteract();
-            nearest.Interact(_accessibility, _audio);
+            if (_levels != null)
+            {
+                _levels.HandleObjectInteracted(nearest);
+            }
+            else
+            {
+                nearest.NotifyInteract();
+            }
         }
 
-        private AudibleInteractable FindNearest(bool includeCollected)
+        public void ResetProximityMemory()
+        {
+            _lastAnnounced = null;
+            _nextProximityAnnounce = 0f;
+        }
+
+        private AudibleInteractable FindNearest(bool includeConsumed)
         {
             var all = FindObjectsByType<AudibleInteractable>(FindObjectsSortMode.None);
             AudibleInteractable best = null;
@@ -104,7 +123,7 @@ namespace EchoQuest.Gameplay
 
             foreach (var item in all)
             {
-                if (!includeCollected && item.IsCollected)
+                if (!includeConsumed && item.IsConsumed)
                 {
                     continue;
                 }

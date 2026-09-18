@@ -48,15 +48,14 @@ Three short levels:
 
 ## Project status
 
-**Phase 3 — Menus + accessibility settings (current)**
+**Phase 4–5 — Tutorial + three levels (current)**
 
-- Main menu: New Game, Continue, Tutorial, Settings, About, Exit
-- Settings: volume buses, narration, cues, contrast, UI/text scale, reset
-- Local save for settings + continue progress
-- Pause overlay with Resume / Settings / Main Menu
-- Practice sandbox with spatial beacon still available after New Game / Tutorial
+- Campaign: Tutorial → Level 1 (navigate) → Level 2 (identify Drum) → Level 3 (Crystal → Lantern → Gate)
+- New Game / Continue / Tutorial wired to `LevelManager`
+- Level-complete overlay when a standalone tutorial ends or the campaign finishes
+- Local save tracks highest completed level
 
-Three scripted thesis levels are **not** implemented yet.
+Android packaging polish and user-study runs remain.
 
 ## Screenshots
 

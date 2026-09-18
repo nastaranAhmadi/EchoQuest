@@ -72,12 +72,15 @@ namespace EchoQuest.Core
             SetState(GameState.MainMenu);
         }
 
-        public void StartPlaying()
+        public void StartPlaying(bool announceDefault = true)
         {
             Time.timeScale = 1f;
             SetState(GameState.Playing);
-            accessibility?.Announce(
-                "Game started. Listen for the beacon. Move with the pad, then press interact when near.");
+            if (announceDefault)
+            {
+                accessibility?.Announce(
+                    "Game started. Listen for the beacon. Move with the pad, then press interact when near.");
+            }
         }
 
         public void Pause()
@@ -117,11 +120,18 @@ namespace EchoQuest.Core
             }
         }
 
-        public void CompleteLevel()
+        public void CompleteLevel(string message = null)
         {
             Time.timeScale = 1f;
             SetState(GameState.LevelComplete);
-            accessibility?.Announce("Level complete.");
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                accessibility?.Announce(message, urgent: true);
+            }
+            else
+            {
+                accessibility?.Announce("Level complete.", urgent: true);
+            }
         }
     }
 }

@@ -1,16 +1,18 @@
+using System;
 using UnityEngine;
 using EchoQuest.Audio;
-using EchoQuest.Accessibility;
 
 namespace EchoQuest.Gameplay
 {
     /// <summary>
     /// World object that emits a looping spatial cue and can be interacted with.
+    /// Level logic decides success/failure; this component reports the interaction.
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
     [RequireComponent(typeof(SpatialAudioController))]
     public sealed class AudibleInteractable : MonoBehaviour
     {
+        [SerializeField] private string id = "object";
         [SerializeField] private string displayName = "Object";
         [SerializeField] private string description = "An audible object.";
         [SerializeField] private float interactRadius = 1.75f;
@@ -19,18 +21,31 @@ namespace EchoQuest.Gameplay
 
         private SpatialAudioController _spatial;
         private AudioSource _source;
-        private bool _collected;
+        private bool _consumed;
 
+        public string Id => id;
         public string DisplayName => displayName;
         public string Description => description;
-        public bool IsCollected => _collected;
+        public bool IsConsumed => _consumed;
         public float InteractRadius => interactRadius;
 
-        public void Configure(string name, string desc, Transform listener, AudioClip loopClip, Color color)
+        public event Action<AudibleInteractable> Interacted;
+
+        public void Configure(
+            string objectId,
+            string name,
+            string desc,
+            Transform listener,
+            AudioClip loopClip,
+            Color color,
+            float pitch = 1f)
         {
+            id = objectId;
             displayName = name;
             description = desc;
             customLoopClip = loopClip;
+            loopPitch = pitch;
+            _consumed = false;
 
             var renderer = GetComponent<Renderer>();
             if (renderer != null)
@@ -39,6 +54,7 @@ namespace EchoQuest.Gameplay
             }
 
             EnsureComponents();
+            _source.pitch = loopPitch;
             _spatial.SetListener(listener);
             BeginLoop();
         }
@@ -72,6 +88,23 @@ namespace EchoQuest.Gameplay
             _spatial.PlayCue(clip, 1f, true);
         }
 
+        public void StopLoop()
+        {
+            _spatial?.StopCue();
+        }
+
+        public void MarkConsumed()
+        {
+            _consumed = true;
+            StopLoop();
+        }
+
+        public void ResetConsumed()
+        {
+            _consumed = false;
+            BeginLoop();
+        }
+
         public bool IsInRange(Vector3 playerPosition)
         {
             return Vector2.Distance(transform.position, playerPosition) <= interactRadius;
@@ -98,19 +131,12 @@ namespace EchoQuest.Gameplay
             return delta.y > 0f ? "ahead" : "behind you";
         }
 
-        public void Interact(AccessibilityManager accessibility, AudioManager audio)
+        /// <summary>
+        /// Called by InteractionSystem when the player interacts in range.
+        /// </summary>
+        public void NotifyInteract()
         {
-            if (_collected)
-            {
-                accessibility?.Announce($"The {displayName} was already collected.");
-                audio?.PlayFailure();
-                return;
-            }
-
-            _collected = true;
-            _spatial.StopCue();
-            audio?.PlaySuccess();
-            accessibility?.Announce($"Collected {displayName}. {description}", urgent: true);
+            Interacted?.Invoke(this);
         }
     }
 }

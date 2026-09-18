@@ -33,22 +33,23 @@ Design rules:
 
 ## Levels (MVP)
 
+### Tutorial
+
+Nearby beacon. Teach move pad + interact.
+
 ### Level 1 — Audio navigation
 
-**Teach:** movement, left/right audio, distance, discovery, interact.  
-**Goal:** Find one specific sounding object and interact with it.
+Farther beacon. Goal: find and interact using directional/distance audio.
 
 ### Level 2 — Object identification
 
-**Teach:** distinguishing multiple audio identities.  
-**Goal:** Find the narrated target among 3–4 objects.
+Three objects (Bell, Drum, Chime) with distinct pitches. Goal: find the **Drum**.
 
 ### Level 3 — Audio puzzle
 
-**Teach:** memory + sequence.  
-**Goal:** Interact with three objects in a fixed order.
+Crystal → Lantern → Gate in order. Wrong order gives spoken feedback.
 
-Keep puzzles short enough for a Bachelor evaluation session (~5–15 minutes total once familiar).
+Campaign flow: **New Game** runs Tutorial through Level 3 automatically between levels.
 
 ## Feedback language
 

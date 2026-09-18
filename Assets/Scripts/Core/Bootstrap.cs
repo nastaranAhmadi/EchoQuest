@@ -11,12 +11,11 @@ using EchoQuest.UI;
 namespace EchoQuest.Core
 {
     /// <summary>
-    /// Wires core services, menus, and the practice sandbox.
+    /// Wires core services, menus, and the level campaign.
     /// </summary>
     public sealed class Bootstrap : MonoBehaviour
     {
         [SerializeField] private bool createPlayerIfMissing = true;
-        [SerializeField] private bool createBeaconIfMissing = true;
 
         private void Awake()
         {
@@ -49,23 +48,20 @@ namespace EchoQuest.Core
                 player = CreateSandboxPlayer();
             }
 
+            var levels = EnsureComponentOn<LevelManager>(systems);
             var interaction = EnsureComponentOn<InteractionSystem>(systems);
             if (player != null)
             {
-                interaction.Initialize(player.transform);
-            }
-
-            if (createBeaconIfMissing && FindFirstObjectByType<AudibleInteractable>() == null && player != null)
-            {
-                CreateBeacon(player.transform, audio);
+                levels.Initialize(player.transform, accessibility, audio, gameManager, progress, interaction);
+                interaction.Initialize(player.transform, levels);
             }
 
             var menu = EnsureComponentOn<MenuController>(systems);
-            menu.Initialize(gameManager, accessibility, progress, audio, touch);
+            menu.Initialize(gameManager, accessibility, progress, audio, touch, levels);
 
             gameManager.EnterMainMenu();
 
-            Debug.Log("EchoQuest bootstrap ready. Phase 3 menus + settings.");
+            Debug.Log("EchoQuest bootstrap ready. Phase 4–5 levels campaign.");
         }
 
         private static GameObject EnsureNamedObject(string name)
@@ -116,41 +112,6 @@ namespace EchoQuest.Core
             }
 
             return player.AddComponent<PlayerController>();
-        }
-
-        private static void CreateBeacon(Transform listener, AudioManager audio)
-        {
-            var beacon = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            beacon.name = "Beacon";
-            beacon.transform.position = new Vector3(3.2f, 2.4f, 0f);
-            beacon.transform.localScale = new Vector3(0.6f, 0.15f, 0.6f);
-
-            var collider3d = beacon.GetComponent<Collider>();
-            if (collider3d != null)
-            {
-                Destroy(collider3d);
-            }
-
-            var rb = beacon.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                Destroy(rb);
-            }
-
-            beacon.AddComponent<AudioSource>();
-            beacon.AddComponent<SpatialAudioController>();
-            var interactable = beacon.AddComponent<AudibleInteractable>();
-
-            AudioClip loop = audio != null
-                ? audio.BeaconLoopClip
-                : ProceduralClipFactory.CreatePulse("beacon", 520f, 0.12f, 0.55f, 2);
-
-            interactable.Configure(
-                "Echo Beacon",
-                "A pulsing sound marker used to practice audio navigation.",
-                listener,
-                loop,
-                new Color(0.95f, 0.7f, 0.2f, 1f));
         }
     }
 }

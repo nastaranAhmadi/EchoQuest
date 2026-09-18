@@ -32,8 +32,7 @@ Automated tests will be added as systems stabilize (Phases 4–6).
 
 - Unity Editor may adjust package versions / `.meta` files on first import
 - In Editor, narration uses `LogNarrator` (Console). On Android builds, native TTS is attempted
-- Changing High Contrast rebuilds the menu UI (brief refresh)
-- UI Scale applies to the menu canvas; gameplay touch pad uses a fixed layout for large targets
-- Tutorial currently opens the practice sandbox (full tutorial level comes later)
-- Three thesis levels not implemented yet
+- Campaign auto-advances after ~1.25s; standalone Tutorial ends on the Level Complete screen
+- Proximity narration can feel chatty with multiple Level 2/3 objects — tune in playtests
 - Procedural beeps are placeholders, not final sound design
+- High Contrast rebuilds menu UI (brief refresh)

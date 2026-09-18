@@ -3,12 +3,13 @@ using UnityEngine.UI;
 using EchoQuest.Accessibility;
 using EchoQuest.Audio;
 using EchoQuest.Core;
+using EchoQuest.Gameplay;
 using EchoQuest.Save;
 
 namespace EchoQuest.UI
 {
     /// <summary>
-    /// Accessible main menu, settings, about, and pause overlays.
+    /// Accessible main menu, settings, about, pause, and level-complete overlays.
     /// </summary>
     public sealed class MenuController : MonoBehaviour
     {
@@ -17,12 +18,14 @@ namespace EchoQuest.UI
         private GameProgressService _progress;
         private AudioManager _audio;
         private TouchControlSurface _touch;
+        private LevelManager _levels;
 
         private Canvas _canvas;
         private GameObject _mainPanel;
         private GameObject _settingsPanel;
         private GameObject _aboutPanel;
         private GameObject _pausePanel;
+        private GameObject _levelCompletePanel;
         private Button _continueButton;
         private bool _openSettingsAfterRebuild;
 
@@ -35,13 +38,15 @@ namespace EchoQuest.UI
             AccessibilityManager accessibility,
             GameProgressService progress,
             AudioManager audio,
-            TouchControlSurface touch)
+            TouchControlSurface touch,
+            LevelManager levels)
         {
             _gameManager = gameManager;
             _accessibility = accessibility;
             _progress = progress;
             _audio = audio;
             _touch = touch;
+            _levels = levels;
 
             ApplyVisualFromSettings(accessibility.Current);
             Build();
@@ -79,13 +84,13 @@ namespace EchoQuest.UI
         private void Build()
         {
             _canvas = AccessibleUiFactory.CreateOverlayCanvas("MenuCanvas", 200);
-            _root = _canvas.GetComponent<RectTransform>();
             _canvas.transform.localScale = Vector3.one * Mathf.Clamp(_uiScale, 0.8f, 1.6f);
 
             _mainPanel = CreateMainPanel();
             _settingsPanel = CreateSettingsPanel();
             _aboutPanel = CreateAboutPanel();
             _pausePanel = CreatePausePanel();
+            _levelCompletePanel = CreateLevelCompletePanel();
 
             ShowOnly(null);
         }
@@ -316,7 +321,36 @@ namespace EchoQuest.UI
             AccessibleUiFactory.CreateLargeButton(panel, "PauseMainMenu", "Main Menu", () =>
             {
                 _audio?.PlayUiSelect();
-                _gameManager.EnterMainMenu();
+                _levels?.ReturnToMenu();
+            }, ButtonColor, LabelColor, ButtonFont);
+
+            return panel.gameObject;
+        }
+
+        private GameObject CreateLevelCompletePanel()
+        {
+            var panel = AccessibleUiFactory.CreateFullPanel(_canvas.transform, "LevelComplete", PanelColor);
+            var layout = panel.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(48, 48, 200, 80);
+            layout.spacing = 28f;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childForceExpandWidth = true;
+
+            var title = new GameObject("CompleteTitle", typeof(RectTransform));
+            title.transform.SetParent(panel, false);
+            title.AddComponent<LayoutElement>().minHeight = 120f;
+            AccessibleUiFactory.CreateText(title.transform, "Level Complete", TitleSize, LabelColor);
+
+            AccessibleUiFactory.CreateLargeButton(panel, "CompleteContinue", "Continue", () =>
+            {
+                _audio?.PlayUiSelect();
+                _levels?.ContinueAfterLevelComplete();
+            }, ButtonColor, LabelColor, ButtonFont);
+            AccessibleUiFactory.CreateLargeButton(panel, "CompleteMenu", "Main Menu", () =>
+            {
+                _audio?.PlayUiSelect();
+                _levels?.ReturnToMenu();
             }, ButtonColor, LabelColor, ButtonFont);
 
             return panel.gameObject;
@@ -371,6 +405,7 @@ namespace EchoQuest.UI
             switch (next)
             {
                 case GameState.MainMenu:
+                    _levels?.ClearWorld();
                     _touch?.SetGameplayVisible(false);
                     ShowOnly(_mainPanel);
                     _accessibility?.Announce("Main menu. Choose New Game, Continue, Tutorial, Settings, About, or Exit.", urgent: true);
@@ -382,6 +417,10 @@ namespace EchoQuest.UI
                 case GameState.Paused:
                     _touch?.SetGameplayVisible(true);
                     ShowOnly(_pausePanel);
+                    break;
+                case GameState.LevelComplete:
+                    _touch?.SetGameplayVisible(false);
+                    ShowOnly(_levelCompletePanel);
                     break;
                 default:
                     ShowOnly(null);
@@ -395,6 +434,7 @@ namespace EchoQuest.UI
             SetActive(_settingsPanel, panel == _settingsPanel);
             SetActive(_aboutPanel, panel == _aboutPanel);
             SetActive(_pausePanel, panel == _pausePanel);
+            SetActive(_levelCompletePanel, panel == _levelCompletePanel);
         }
 
         private static void SetActive(GameObject go, bool active)
@@ -408,10 +448,8 @@ namespace EchoQuest.UI
         private void OnNewGame()
         {
             _audio?.PlayUiSelect();
-            _progress.ResetProgressKeepSettings();
-            _progress.MarkGameplayStarted();
-            _accessibility.Announce("Starting a new game.", urgent: true);
-            _gameManager.StartPlaying();
+            _accessibility.Announce("Starting a new campaign from the tutorial.", urgent: true);
+            _levels.StartCampaignFromBeginning();
         }
 
         private void OnContinue()
@@ -424,18 +462,14 @@ namespace EchoQuest.UI
             }
 
             _audio?.PlayUiSelect();
-            _accessibility.Announce("Continuing your game.", urgent: true);
-            _gameManager.StartPlaying();
+            _accessibility.Announce("Continuing your campaign.", urgent: true);
+            _levels.ContinueCampaign();
         }
 
         private void OnTutorial()
         {
             _audio?.PlayUiSelect();
-            _progress.MarkGameplayStarted();
-            _accessibility.Announce(
-                "Tutorial practice area. Find the pulsing beacon using sound, then press interact.",
-                urgent: true);
-            _gameManager.StartPlaying();
+            _levels.StartTutorialOnly();
         }
 
         private void OnOpenSettings()
