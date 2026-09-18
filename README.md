@@ -48,15 +48,15 @@ Three short levels:
 
 ## Project status
 
-**Phase 0 — Foundation (in progress / complete locally)**
+**Phase 1 — Core input + movement (current)**
 
-- Unity project scaffold
+- Unity project scaffold + documentation
 - Portrait Android-oriented Player Settings
-- Core architecture stubs
-- Documentation skeleton
-- Git initialized
+- `InputActionRouter` + large on-screen touch pad
+- Keyboard/gamepad bridge for Editor testing
+- Sandbox player movement + pause/resume
 
-Gameplay levels and full Android TTS are **not** implemented yet.
+Menus, levels, spatial object audio, and Android TTS are **not** implemented yet.
 
 ## Screenshots
 

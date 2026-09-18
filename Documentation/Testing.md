@@ -28,9 +28,10 @@ Automated tests will be added as systems stabilize (Phases 4–6).
 - No internet required for core loop
 - APK installs and launches on a mid-range Android phone
 
-## Known issues (Phase 0)
+## Known issues
 
-- Unity Editor not yet opened on the scaffold machine — package versions may resolve/upgrade on first import
-- Narration is log-only (`LogNarrator`)
-- No gameplay levels yet
-- Touch control surface not yet implemented
+- Unity Editor may adjust package versions / `.meta` files on first import
+- Narration is log-only (`LogNarrator`) until Android TTS is added
+- No menus or levels yet (Phase 1 = sandbox movement + pause)
+- Multi-direction chord on the D-pad replaces the previous hold (one direction at a time)
+- Builtin UI font fallback depends on Unity version (`LegacyRuntime.ttf` / `Arial.ttf`)
